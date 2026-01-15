@@ -95,6 +95,7 @@ function renderForm(formDef) {
     html += '</div>';
   });
   container.innerHTML = html;
+  bindAutoSave();
 }
 
 // 返回
@@ -110,7 +111,24 @@ function saveForm() {
   });
   data.updateTime = new Date().toISOString();
   setData(currentModule, data);
-  alert('保存成功');
+  alert('保存成功！数据已存储在本地');
+}
+
+// 自动保存（输入变化时）
+function autoSave() {
+  const data = {};
+  document.querySelectorAll('[data-field]').forEach(el => {
+    data[el.dataset.field] = el.value;
+  });
+  data.updateTime = new Date().toISOString();
+  setData(currentModule, data);
+}
+
+// 绑定自动保存
+function bindAutoSave() {
+  document.querySelectorAll('[data-field]').forEach(el => {
+    el.addEventListener('change', autoSave);
+  });
 }
 
 // 数据存储
