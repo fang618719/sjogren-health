@@ -2,10 +2,14 @@
 let currentPatientId = null;
 let currentModule = null;
 let currentFilter = 'all';
+let isAdmin = false;
 const STORAGE_KEY = 'sjogren_patients';
 
 // 预设用户
-const VALID_USER = { username: 'pdd', password: '7402' };
+const VALID_USERS = [
+  { username: 'pdd', password: '7402', role: 'user' },
+  { username: 'admin', password: 'admin123', role: 'admin' }
+];
 
 // 初始化
 document.addEventListener('DOMContentLoaded', () => {
@@ -22,6 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
 // 登录检查
 function checkLogin() {
   if (sessionStorage.getItem('logged_in')) {
+    isAdmin = sessionStorage.getItem('is_admin') === 'true';
     showPage('patient-list-page');
     renderPatientList();
   }
@@ -35,8 +40,11 @@ function handleLogin() {
     alert('请输入用户名和密码');
     return;
   }
-  if (username === VALID_USER.username && password === VALID_USER.password) {
+  const user = VALID_USERS.find(u => u.username === username && u.password === password);
+  if (user) {
     sessionStorage.setItem('logged_in', 'true');
+    sessionStorage.setItem('is_admin', user.role === 'admin' ? 'true' : 'false');
+    isAdmin = user.role === 'admin';
     showPage('patient-list-page');
     renderPatientList();
   } else {
@@ -255,6 +263,13 @@ function openPatient(patientId) {
   renderPatientOverview(patient);
   renderProgress(patient);
   renderModules(patient);
+  
+  // 管理员显示删除按钮
+  const deleteBtn = document.getElementById('delete-btn');
+  if (deleteBtn) {
+    deleteBtn.classList.toggle('show', isAdmin);
+  }
+  
   showPage('patient-detail-page');
 }
 
@@ -320,7 +335,11 @@ function backToList() {
 
 // 删除患者
 function deletePatient() {
-  if (!confirm('确定要删除该患者及其所有数据吗？')) return;
+  if (!isAdmin) {
+    alert('只有管理员可以删除患者');
+    return;
+  }
+  if (!confirm('确定要永久删除该患者及其所有数据吗？此操作不可恢复！')) return;
   let patients = getPatients();
   patients = patients.filter(p => p.id !== currentPatientId);
   savePatients(patients);
