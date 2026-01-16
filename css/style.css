@@ -53,6 +53,9 @@ header h2 { font-size: 18px; font-weight: 600; letter-spacing: 0.5px; }
 .form-textarea:focus { border-color: #6366f1; outline: none; box-shadow: 0 0 0 4px rgba(99,102,241,0.1); background: #fff; }
 
 /* 患者列表 */
+.search-section { padding: 16px 16px 0; }
+.search-section input { width: 100%; height: 50px; border: 2px solid #e5e7eb; border-radius: 14px; padding: 0 18px; font-size: 15px; background: #fff; transition: all 0.3s; }
+.search-section input:focus { border-color: #6366f1; outline: none; box-shadow: 0 0 0 4px rgba(99,102,241,0.1); }
 .patient-list { padding: 16px; }
 .patient-card { background: #fff; border-radius: 18px; padding: 20px; margin-bottom: 14px; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 2px 12px rgba(0,0,0,0.06); border: 1px solid rgba(99,102,241,0.08); position: relative; overflow: hidden; }
 .patient-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: linear-gradient(180deg, #6366f1, #8b5cf6); }
@@ -63,9 +66,20 @@ header h2 { font-size: 18px; font-weight: 600; letter-spacing: 0.5px; }
 .patient-card-info { display: flex; justify-content: space-between; align-items: center; }
 .patient-progress { font-size: 13px; color: #10b981; font-weight: 500; }
 .patient-time { font-size: 12px; color: #9ca3af; }
-.add-patient-section { padding: 16px; padding-bottom: 30px; }
+.add-patient-section { padding: 16px; padding-bottom: 30px; display: flex; flex-direction: column; gap: 12px; }
 .btn-add { width: 100%; height: 56px; background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); color: #fff; border: none; border-radius: 16px; font-size: 17px; font-weight: 600; cursor: pointer; transition: all 0.3s; box-shadow: 0 6px 25px rgba(99,102,241,0.4); display: flex; align-items: center; justify-content: center; gap: 8px; }
 .btn-add:hover { transform: translateY(-3px); box-shadow: 0 10px 35px rgba(99,102,241,0.5); }
+.btn-export-all { width: 100%; height: 52px; background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%); color: #fff; border: none; border-radius: 14px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 15px rgba(245,158,11,0.4); }
+.btn-export-all:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(245,158,11,0.5); }
+.patient-status { font-size: 12px; padding: 4px 10px; border-radius: 6px; font-weight: 600; }
+.patient-status.not-started { background: #f3f4f6; color: #6b7280; }
+.patient-status.in-progress { background: rgba(99,102,241,0.1); color: #6366f1; }
+.patient-status.completed { background: rgba(16,185,129,0.1); color: #10b981; }
+.patient-progress-bar { height: 6px; background: #e5e7eb; border-radius: 3px; margin-top: 10px; overflow: hidden; }
+.patient-progress-bar-fill { height: 100%; border-radius: 3px; transition: width 0.3s; }
+.patient-progress-bar-fill.not-started { background: #d1d5db; width: 0; }
+.patient-progress-bar-fill.in-progress { background: linear-gradient(135deg, #6366f1, #8b5cf6); }
+.patient-progress-bar-fill.completed { background: linear-gradient(135deg, #10b981, #34d399); }
 .empty-list { text-align: center; padding: 80px 20px; color: #9ca3af; }
 .empty-list-icon { font-size: 64px; margin-bottom: 20px; opacity: 0.6; }
 .empty-list-text { font-size: 16px; line-height: 1.6; }

@@ -65,15 +65,24 @@ function getPatient(patientId) {
 }
 
 // 渲染患者列表
-function renderPatientList() {
+function renderPatientList(filterText = '') {
   const container = document.getElementById('patient-list');
-  const patients = getPatients();
+  let patients = getPatients();
+  
+  // 搜索过滤
+  if (filterText) {
+    const keyword = filterText.toLowerCase();
+    patients = patients.filter(p => 
+      p.id.toLowerCase().includes(keyword) || 
+      p.name.toLowerCase().includes(keyword)
+    );
+  }
   
   if (patients.length === 0) {
     container.innerHTML = `
       <div class="empty-list">
         <div class="empty-list-icon">📋</div>
-        <div class="empty-list-text">暂无患者，点击下方按钮添加</div>
+        <div class="empty-list-text">${filterText ? '未找到匹配的患者' : '暂无患者，点击下方按钮添加'}</div>
       </div>
     `;
     return;
@@ -82,19 +91,75 @@ function renderPatientList() {
   container.innerHTML = patients.map(p => {
     const progress = calcProgress(p);
     const lastUpdate = p.lastUpdate ? formatDate(p.lastUpdate) : '未填写';
+    const percent = Math.round(progress / 13 * 100);
+    
+    // 状态判断
+    let statusClass, statusText;
+    if (progress === 0) {
+      statusClass = 'not-started';
+      statusText = '未开始';
+    } else if (progress === 13) {
+      statusClass = 'completed';
+      statusText = '已完成';
+    } else {
+      statusClass = 'in-progress';
+      statusText = '进行中';
+    }
+    
     return `
       <div class="patient-card" onclick="openPatient('${p.id}')">
         <div class="patient-card-header">
           <span class="patient-id">住院号: ${p.id}</span>
+          <span class="patient-status ${statusClass}">${statusText}</span>
         </div>
         <div class="patient-name">${p.name}</div>
         <div class="patient-card-info">
-          <span class="patient-progress">已完成 ${progress}/13 项</span>
+          <span class="patient-progress">${progress}/13 项</span>
           <span class="patient-time">更新: ${lastUpdate}</span>
+        </div>
+        <div class="patient-progress-bar">
+          <div class="patient-progress-bar-fill ${statusClass}" style="width: ${percent}%"></div>
         </div>
       </div>
     `;
   }).join('');
+}
+
+// 搜索患者
+function searchPatients() {
+  const keyword = document.getElementById('search-input').value;
+  renderPatientList(keyword);
+}
+
+// 导出所有患者数据
+function exportAllPatients() {
+  const patients = getPatients();
+  if (patients.length === 0) { alert('暂无患者数据'); return; }
+  
+  // 构建CSV表头
+  let csv = '住院号,姓名,模块,字段,值,更新时间\n';
+  
+  patients.forEach(patient => {
+    if (patient.data) {
+      Object.keys(patient.data).forEach(module => {
+        const moduleData = patient.data[module];
+        Object.keys(moduleData).forEach(field => {
+          if (field !== 'updateTime') {
+            const value = String(moduleData[field]).replace(/"/g, '""');
+            csv += `"${patient.id}","${patient.name}","${module}","${field}","${value}","${moduleData.updateTime || ''}"\n`;
+          }
+        });
+      });
+    }
+  });
+  
+  const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `全部患者数据_${new Date().toLocaleDateString()}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
 // 计算进度

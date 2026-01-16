@@ -37,9 +37,13 @@
                 <h2>患者列表</h2>
                 <span class="logout" onclick="handleLogout()">退出</span>
             </header>
+            <div class="search-section">
+                <input type="text" id="search-input" placeholder="🔍 搜索住院号/姓名..." oninput="searchPatients()">
+            </div>
             <div class="patient-list" id="patient-list"></div>
             <div class="add-patient-section">
                 <button class="btn-add" onclick="showAddPatient()">+ 添加患者</button>
+                <button class="btn-export-all" onclick="exportAllPatients()">📤 导出全部数据</button>
             </div>
         </div>
 
