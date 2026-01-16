@@ -111,6 +111,20 @@ header h2 { font-size: 18px; font-weight: 600; letter-spacing: 0.5px; }
 .exclude-option:hover { background: #f3f4f6; }
 .exclude-option input[type="radio"] { width: 18px; height: 18px; accent-color: #ef4444; }
 
+/* 纳排筛查弹窗 */
+.modal-large { max-width: 440px; max-height: 85vh; overflow-y: auto; }
+.screening-hint { color: #6b7280; font-size: 14px; margin-bottom: 16px; }
+.screening-section { margin-bottom: 16px; }
+.screening-title { font-size: 14px; font-weight: 600; padding: 10px 12px; border-radius: 8px; margin-bottom: 10px; }
+.screening-title.inclusion { background: rgba(16,185,129,0.1); color: #10b981; }
+.screening-title.exclusion { background: rgba(239,68,68,0.1); color: #ef4444; }
+.screening-item { display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px; background: #f9fafb; border-radius: 8px; cursor: pointer; font-size: 13px; color: #374151; margin-bottom: 8px; line-height: 1.4; }
+.screening-item:hover { background: #f3f4f6; }
+.screening-item input[type="checkbox"] { width: 18px; height: 18px; margin-top: 2px; flex-shrink: 0; accent-color: #6366f1; }
+.screening-result { padding: 12px; border-radius: 8px; font-size: 14px; font-weight: 500; text-align: center; margin-top: 12px; }
+.screening-result.pass { background: rgba(16,185,129,0.1); color: #10b981; }
+.screening-result.fail { background: rgba(239,68,68,0.1); color: #ef4444; }
+
 /* 患者详情 */
 .patient-overview { background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%); color: #fff; padding: 28px 24px; margin: 16px; border-radius: 20px; box-shadow: 0 8px 30px rgba(99,102,241,0.4); position: relative; overflow: hidden; }
 .patient-overview::before { content: ''; position: absolute; width: 150px; height: 150px; background: rgba(255,255,255,0.1); border-radius: 50%; top: -50px; right: -30px; }

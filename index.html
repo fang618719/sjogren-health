@@ -68,7 +68,39 @@
                 </div>
                 <div class="modal-buttons">
                     <button class="btn-cancel" onclick="hideAddPatient()">取消</button>
-                    <button class="btn-confirm" onclick="addPatient()">确认</button>
+                    <button class="btn-confirm" onclick="goToScreening()">下一步：纳排筛查</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 纳入排除筛查弹窗 -->
+        <div id="screening-modal" class="modal">
+            <div class="modal-content modal-large">
+                <h3>纳入排除标准筛查</h3>
+                <p class="screening-hint">请根据患者情况勾选以下条件：</p>
+                
+                <div class="screening-section">
+                    <div class="screening-title inclusion">✓ 纳入标准（需全部满足）</div>
+                    <label class="screening-item"><input type="checkbox" id="inc1"> 2014-2024年在中大医院首次确诊原发性干燥综合征</label>
+                    <label class="screening-item"><input type="checkbox" id="inc2"> 符合2016 ACR/EULAR分类标准</label>
+                    <label class="screening-item"><input type="checkbox" id="inc3"> 有较完整的电子病历记录</label>
+                    <label class="screening-item"><input type="checkbox" id="inc4"> 至少有一次随访记录</label>
+                    <label class="screening-item"><input type="checkbox" id="inc5"> 有中医四诊资料</label>
+                </div>
+                
+                <div class="screening-section">
+                    <div class="screening-title exclusion">✗ 排除标准（任一符合则排除）</div>
+                    <label class="screening-item"><input type="checkbox" id="exc1"> 继发性干燥综合征（合并RA、SLE、SSc等）</label>
+                    <label class="screening-item"><input type="checkbox" id="exc2"> 严重恶性肿瘤晚期</label>
+                    <label class="screening-item"><input type="checkbox" id="exc3"> 关键研究变量严重缺失</label>
+                    <label class="screening-item"><input type="checkbox" id="exc4"> 中医四诊资料严重缺失</label>
+                </div>
+                
+                <div class="screening-result" id="screening-result"></div>
+                
+                <div class="modal-buttons">
+                    <button class="btn-cancel" onclick="backToAddPatient()">返回</button>
+                    <button class="btn-confirm" id="screening-confirm-btn" onclick="confirmScreening()">确认添加</button>
                 </div>
             </div>
         </div>

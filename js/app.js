@@ -21,6 +21,10 @@ document.addEventListener('DOMContentLoaded', () => {
         e.target.value === 'other' ? 'block' : 'none';
     });
   });
+  // 纳排筛查复选框监听
+  document.querySelectorAll('#screening-modal input[type="checkbox"]').forEach(cb => {
+    cb.addEventListener('change', updateScreeningResult);
+  });
 });
 
 // 登录检查
@@ -234,8 +238,8 @@ function hideAddPatient() {
   document.getElementById('add-patient-modal').classList.remove('active');
 }
 
-// 添加患者
-function addPatient() {
+// 进入纳排筛查
+function goToScreening() {
   const id = document.getElementById('new-patient-id').value.trim();
   const name = document.getElementById('new-patient-name').value.trim();
   if (!id || !name) {
@@ -247,10 +251,109 @@ function addPatient() {
     alert('该住院号已存在');
     return;
   }
-  patients.push({ id, name, data: {}, createTime: new Date().toISOString() });
+  // 隐藏添加弹窗，显示筛查弹窗
+  document.getElementById('add-patient-modal').classList.remove('active');
+  document.getElementById('screening-modal').classList.add('active');
+  // 重置筛查表单
+  document.querySelectorAll('#screening-modal input[type="checkbox"]').forEach(cb => cb.checked = false);
+  document.getElementById('screening-result').innerHTML = '';
+  document.getElementById('screening-result').className = 'screening-result';
+  updateScreeningResult();
+}
+
+// 返回添加患者弹窗
+function backToAddPatient() {
+  document.getElementById('screening-modal').classList.remove('active');
+  document.getElementById('add-patient-modal').classList.add('active');
+}
+
+// 更新筛查结果
+function updateScreeningResult() {
+  const inc1 = document.getElementById('inc1').checked;
+  const inc2 = document.getElementById('inc2').checked;
+  const inc3 = document.getElementById('inc3').checked;
+  const inc4 = document.getElementById('inc4').checked;
+  const inc5 = document.getElementById('inc5').checked;
+  const exc1 = document.getElementById('exc1').checked;
+  const exc2 = document.getElementById('exc2').checked;
+  const exc3 = document.getElementById('exc3').checked;
+  const exc4 = document.getElementById('exc4').checked;
+  
+  const allIncluded = inc1 && inc2 && inc3 && inc4 && inc5;
+  const anyExcluded = exc1 || exc2 || exc3 || exc4;
+  
+  const resultDiv = document.getElementById('screening-result');
+  const confirmBtn = document.getElementById('screening-confirm-btn');
+  
+  if (anyExcluded) {
+    resultDiv.innerHTML = '❌ 不符合纳入条件：存在排除标准';
+    resultDiv.className = 'screening-result fail';
+    confirmBtn.textContent = '标记为不纳入';
+    confirmBtn.style.background = 'linear-gradient(135deg, #ef4444, #f87171)';
+  } else if (!allIncluded) {
+    resultDiv.innerHTML = '⚠️ 请确认所有纳入标准';
+    resultDiv.className = 'screening-result';
+    confirmBtn.textContent = '确认添加';
+    confirmBtn.style.background = '';
+  } else {
+    resultDiv.innerHTML = '✓ 符合纳入条件，可进行数据采集';
+    resultDiv.className = 'screening-result pass';
+    confirmBtn.textContent = '确认添加';
+    confirmBtn.style.background = '';
+  }
+}
+
+// 确认筛查结果并添加患者
+function confirmScreening() {
+  const id = document.getElementById('new-patient-id').value.trim();
+  const name = document.getElementById('new-patient-name').value.trim();
+  
+  const inc1 = document.getElementById('inc1').checked;
+  const inc2 = document.getElementById('inc2').checked;
+  const inc3 = document.getElementById('inc3').checked;
+  const inc4 = document.getElementById('inc4').checked;
+  const inc5 = document.getElementById('inc5').checked;
+  const exc1 = document.getElementById('exc1').checked;
+  const exc2 = document.getElementById('exc2').checked;
+  const exc3 = document.getElementById('exc3').checked;
+  const exc4 = document.getElementById('exc4').checked;
+  
+  const allIncluded = inc1 && inc2 && inc3 && inc4 && inc5;
+  const anyExcluded = exc1 || exc2 || exc3 || exc4;
+  
+  // 构建排除原因
+  let excludeReason = '';
+  if (exc1) excludeReason = '继发性干燥综合征';
+  else if (exc2) excludeReason = '严重恶性肿瘤晚期';
+  else if (exc3) excludeReason = '关键变量严重缺失';
+  else if (exc4) excludeReason = '中医四诊资料缺失';
+  
+  const patients = getPatients();
+  const newPatient = {
+    id,
+    name,
+    data: {},
+    createTime: new Date().toISOString(),
+    screening: { inc1, inc2, inc3, inc4, inc5, exc1, exc2, exc3, exc4 }
+  };
+  
+  if (anyExcluded) {
+    newPatient.excluded = true;
+    newPatient.excludeReason = excludeReason;
+    newPatient.excludeTime = new Date().toISOString();
+  }
+  
+  patients.push(newPatient);
   savePatients(patients);
-  hideAddPatient();
+  
+  document.getElementById('screening-modal').classList.remove('active');
   renderPatientList();
+  
+  if (anyExcluded) {
+    alert('患者已添加并标记为不纳入');
+  } else {
+    alert('患者添加成功，可开始数据采集');
+  }
 }
 
 // 打开患者详情
