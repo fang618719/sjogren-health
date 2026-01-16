@@ -30,18 +30,63 @@
                 </div>
             </div>
         </div>
-        <!-- 主页 -->
-        <div id="main-page" class="page">
-            <header><h2>数据采集</h2><span class="logout" onclick="handleLogout()">退出</span></header>
-            <div class="module-grid" id="module-list"></div>
-            <div class="export-section">
-                <button class="btn-export" onclick="exportData()">导出全部数据</button>
+
+        <!-- 患者列表页 -->
+        <div id="patient-list-page" class="page">
+            <header>
+                <h2>患者列表</h2>
+                <span class="logout" onclick="handleLogout()">退出</span>
+            </header>
+            <div class="patient-list" id="patient-list"></div>
+            <div class="add-patient-section">
+                <button class="btn-add" onclick="showAddPatient()">+ 添加患者</button>
             </div>
         </div>
+
+        <!-- 添加患者弹窗 -->
+        <div id="add-patient-modal" class="modal">
+            <div class="modal-content">
+                <h3>添加新患者</h3>
+                <div class="input-group">
+                    <label>住院号 *</label>
+                    <input type="text" id="new-patient-id" placeholder="请输入住院号">
+                </div>
+                <div class="input-group">
+                    <label>姓名 *</label>
+                    <input type="text" id="new-patient-name" placeholder="请输入姓名">
+                </div>
+                <div class="modal-buttons">
+                    <button class="btn-cancel" onclick="hideAddPatient()">取消</button>
+                    <button class="btn-confirm" onclick="addPatient()">确认</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 患者详情页 -->
+        <div id="patient-detail-page" class="page">
+            <header>
+                <span class="back" onclick="backToList()">&lt; 返回</span>
+                <h2 id="patient-name-title">患者详情</h2>
+                <span class="delete-btn" onclick="deletePatient()">删除</span>
+            </header>
+            <div class="patient-overview" id="patient-overview"></div>
+            <div class="progress-section">
+                <h3>数据采集进度</h3>
+                <div class="progress-bar-container">
+                    <div class="progress-bar" id="progress-bar"></div>
+                </div>
+                <span class="progress-text" id="progress-text">0/13</span>
+            </div>
+            <div class="module-grid" id="module-list"></div>
+            <div class="export-section">
+                <button class="btn-export" onclick="exportPatientData()">导出该患者数据</button>
+            </div>
+        </div>
+
         <!-- 表单页 -->
         <div id="form-page" class="page">
             <header>
-                <span class="back" onclick="goBack()">&lt; 返回</span>
+                <span class="back" onclick="backToDetail()">&lt; 返回</span>
                 <h2 id="form-title">表单</h2>
                 <span class="save" onclick="saveForm()">保存</span>
             </header>
