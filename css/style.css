@@ -136,6 +136,49 @@ header h2 { font-size: 18px; font-weight: 600; letter-spacing: 0.5px; }
 .progress-bar-container { height: 10px; background: #e5e7eb; border-radius: 5px; overflow: hidden; margin-bottom: 10px; }
 .progress-bar { height: 100%; background: linear-gradient(135deg, #10b981 0%, #34d399 100%); border-radius: 5px; transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
 .progress-text { font-size: 14px; color: #10b981; font-weight: 600; }
+.progress-detail { display: flex; justify-content: space-between; align-items: center; }
+.progress-percent { font-size: 14px; color: #6366f1; font-weight: 600; }
+.missing-fields-hint { font-size: 13px; color: #f59e0b; margin-top: 8px; cursor: pointer; padding: 8px 12px; background: rgba(245,158,11,0.1); border-radius: 8px; display: none; }
+.missing-fields-hint.show { display: block; }
+.missing-fields-hint:hover { background: rgba(245,158,11,0.15); }
+
+/* 备份按钮 */
+.btn-backup { width: 100%; height: 44px; background: #fff; color: #6366f1; border: 2px solid #6366f1; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.3s; }
+.btn-backup:hover { background: rgba(99,102,241,0.1); }
+
+/* 备份弹窗 */
+.backup-section { text-align: center; }
+.backup-hint { color: #6b7280; font-size: 14px; margin-bottom: 20px; }
+.btn-backup-action { width: 100%; height: 50px; background: linear-gradient(135deg, #10b981 0%, #34d399 100%); color: #fff; border: none; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 15px rgba(16,185,129,0.3); }
+.btn-backup-action:hover { transform: translateY(-2px); }
+.backup-divider { color: #9ca3af; font-size: 14px; margin: 16px 0; }
+.btn-restore-action { display: block; width: 100%; height: 50px; background: #f3f4f6; color: #4b5563; border: none; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.3s; line-height: 50px; text-align: center; }
+.btn-restore-action:hover { background: #e5e7eb; }
+
+/* 导出选项 */
+.export-options { text-align: left; }
+.export-option-item { display: flex; align-items: center; gap: 10px; padding: 12px; background: #f9fafb; border-radius: 10px; cursor: pointer; font-size: 14px; color: #374151; margin-bottom: 10px; transition: all 0.2s; }
+.export-option-item:hover { background: #f3f4f6; }
+.export-option-item input { width: 18px; height: 18px; accent-color: #6366f1; }
+.export-format-section { margin-top: 16px; padding-top: 16px; border-top: 1px solid #e5e7eb; }
+.export-format-section p { font-size: 14px; color: #4b5563; font-weight: 600; margin-bottom: 12px; }
+
+/* 缺失字段清单 */
+.missing-fields-list { max-height: 400px; overflow-y: auto; }
+.missing-module { margin-bottom: 16px; }
+.missing-module-title { font-size: 14px; font-weight: 600; color: #6366f1; padding: 8px 12px; background: rgba(99,102,241,0.1); border-radius: 8px; margin-bottom: 8px; }
+.missing-field-item { font-size: 13px; color: #4b5563; padding: 8px 12px; background: #f9fafb; border-radius: 6px; margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
+.missing-field-item::before { content: '○'; color: #f59e0b; }
+
+/* 复核按钮 */
+.btn-review { width: 100%; height: 48px; background: #fff; color: #6366f1; border: 2px solid #6366f1; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.3s; }
+.btn-review:hover { background: rgba(99,102,241,0.1); }
+
+/* 操作日志 */
+.log-list { max-height: 300px; overflow-y: auto; }
+.log-item { font-size: 13px; color: #4b5563; padding: 10px 12px; background: #f9fafb; border-radius: 8px; margin-bottom: 8px; border-left: 3px solid #6366f1; }
+.log-item .log-time { font-size: 11px; color: #9ca3af; margin-bottom: 4px; }
+.log-item .log-action { font-weight: 500; }
 .delete-btn { font-size: 14px; cursor: pointer; padding: 8px 14px; background: rgba(239,68,68,0.2); border-radius: 8px; transition: all 0.3s; color: #fff; }
 .delete-btn:hover { background: rgba(239,68,68,0.4); }
 .exclude-btn { font-size: 14px; cursor: pointer; padding: 8px 14px; background: rgba(239,68,68,0.2); border-radius: 8px; transition: all 0.3s; color: #fff; }

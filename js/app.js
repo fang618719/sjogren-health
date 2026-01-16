@@ -4,6 +4,7 @@ let currentModule = null;
 let currentFilter = 'all';
 let isAdmin = false;
 const STORAGE_KEY = 'sjogren_patients';
+const LOG_KEY = 'sjogren_logs';
 
 // 预设用户
 const VALID_USERS = [
@@ -11,9 +12,19 @@ const VALID_USERS = [
   { username: 'admin', password: 'admin123', role: 'admin' }
 ];
 
+// 关键必填字段定义
+const REQUIRED_FIELDS = {
+  basic: ['gender', 'age', 'duration'],
+  diagnosis: ['diagnosis_date', 'diagnosis_basis'],
+  symptoms: ['dry_eye', 'dry_mouth'],
+  lab: ['ANA', 'anti_SSA', 'anti_SSB'],
+  tcm: ['tongue', 'pulse']
+};
+
 // 初始化
 document.addEventListener('DOMContentLoaded', () => {
   checkLogin();
+  checkBackupReminder();
   // 剔除原因选择监听
   document.querySelectorAll('input[name="exclude-reason"]').forEach(radio => {
     radio.addEventListener('change', (e) => {
@@ -26,6 +37,23 @@ document.addEventListener('DOMContentLoaded', () => {
     cb.addEventListener('change', updateScreeningResult);
   });
 });
+
+// 备份提醒检查
+function checkBackupReminder() {
+  const lastBackup = localStorage.getItem('sjogren_last_backup');
+  const today = new Date().toDateString();
+  if (lastBackup !== today) {
+    const patients = getPatients();
+    if (patients.length > 0) {
+      setTimeout(() => {
+        if (confirm('建议定期备份数据以防丢失，是否现在备份？')) {
+          showBackupModal();
+        }
+        localStorage.setItem('sjogren_last_backup', today);
+      }, 1000);
+    }
+  }
+}
 
 // 登录检查
 function checkLogin() {
@@ -48,9 +76,11 @@ function handleLogin() {
   if (user) {
     sessionStorage.setItem('logged_in', 'true');
     sessionStorage.setItem('is_admin', user.role === 'admin' ? 'true' : 'false');
+    sessionStorage.setItem('current_user', username);
     isAdmin = user.role === 'admin';
     showPage('patient-list-page');
     renderPatientList();
+    addLog('登录', `用户 ${username} 登录系统`);
   } else {
     alert('用户名或密码错误');
   }
@@ -406,10 +436,23 @@ function renderPatientOverview(patient) {
 
 // 渲染进度条
 function renderProgress(patient) {
-  const progress = calcProgress(patient);
-  const percent = Math.round(progress / 13 * 100);
-  document.getElementById('progress-bar').style.width = percent + '%';
-  document.getElementById('progress-text').textContent = `${progress}/13 项已完成`;
+  const moduleProgress = calcProgress(patient);
+  const modulePercent = Math.round(moduleProgress / 13 * 100);
+  const fieldProgress = calcFieldProgress(patient);
+  
+  document.getElementById('progress-bar').style.width = modulePercent + '%';
+  document.getElementById('progress-text').textContent = `${moduleProgress}/13 模块已填写`;
+  document.getElementById('progress-percent').textContent = `关键字段 ${fieldProgress.percent}%`;
+  
+  // 显示缺失提示
+  const missingHint = document.getElementById('missing-hint');
+  const missingCount = fieldProgress.total - fieldProgress.filled;
+  if (missingCount > 0) {
+    missingHint.textContent = `⚠️ ${missingCount}个关键字段待填写，点击查看`;
+    missingHint.classList.add('show');
+  } else {
+    missingHint.classList.remove('show');
+  }
 }
 
 // 渲染模块列表
@@ -443,9 +486,11 @@ function deletePatient() {
     return;
   }
   if (!confirm('确定要永久删除该患者及其所有数据吗？此操作不可恢复！')) return;
+  const patient = getPatient(currentPatientId);
   let patients = getPatients();
   patients = patients.filter(p => p.id !== currentPatientId);
   savePatients(patients);
+  addLog('永久删除', `删除患者 ${patient?.name}(${currentPatientId})`);
   backToList();
 }
 
@@ -478,6 +523,7 @@ function confirmExclude() {
     }
   }
   
+  const patient = getPatient(currentPatientId);
   let patients = getPatients();
   const idx = patients.findIndex(p => p.id === currentPatientId);
   if (idx >= 0) {
@@ -485,6 +531,7 @@ function confirmExclude() {
     patients[idx].excludeReason = reason;
     patients[idx].excludeTime = new Date().toISOString();
     savePatients(patients);
+    addLog('剔除患者', `剔除 ${patient?.name}(${currentPatientId})，原因：${reason}`);
   }
   hideExcludeModal();
   backToList();
@@ -493,6 +540,7 @@ function confirmExclude() {
 // 恢复患者（取消剔除）
 function restorePatient() {
   if (!confirm('确定要恢复该患者吗？')) return;
+  const patient = getPatient(currentPatientId);
   let patients = getPatients();
   const idx = patients.findIndex(p => p.id === currentPatientId);
   if (idx >= 0) {
@@ -500,9 +548,10 @@ function restorePatient() {
     delete patients[idx].excludeReason;
     delete patients[idx].excludeTime;
     savePatients(patients);
+    addLog('恢复患者', `恢复 ${patient?.name}(${currentPatientId})`);
   }
-  const patient = getPatient(currentPatientId);
-  renderPatientOverview(patient);
+  const updatedPatient = getPatient(currentPatientId);
+  renderPatientOverview(updatedPatient);
 }
 
 // 打开表单模块
@@ -612,4 +661,353 @@ function exportPatientData() {
   a.download = `${patient.name}_${patient.id}_数据.csv`;
   a.click();
   URL.revokeObjectURL(url);
+}
+
+// ========== 备份/恢复功能 ==========
+function showBackupModal() {
+  document.getElementById('backup-modal').classList.add('active');
+}
+
+function hideBackupModal() {
+  document.getElementById('backup-modal').classList.remove('active');
+}
+
+function exportBackup() {
+  const patients = getPatients();
+  const logs = getLogs();
+  const backup = {
+    version: '1.0',
+    exportTime: new Date().toISOString(),
+    patients: patients,
+    logs: logs
+  };
+  const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `干燥综合征数据备份_${new Date().toLocaleDateString().replace(/\//g, '-')}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  localStorage.setItem('sjogren_last_backup', new Date().toDateString());
+  addLog('导出备份', `导出${patients.length}位患者数据`);
+  alert('备份导出成功！');
+}
+
+function importBackup(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const backup = JSON.parse(e.target.result);
+      if (!backup.patients || !Array.isArray(backup.patients)) {
+        throw new Error('无效的备份文件');
+      }
+      const existingPatients = getPatients();
+      const existingIds = existingPatients.map(p => p.id);
+      let newCount = 0, updateCount = 0;
+      
+      backup.patients.forEach(p => {
+        const idx = existingPatients.findIndex(ep => ep.id === p.id);
+        if (idx >= 0) {
+          // 合并：保留较新的数据
+          if (new Date(p.lastUpdate || p.createTime) > new Date(existingPatients[idx].lastUpdate || existingPatients[idx].createTime)) {
+            existingPatients[idx] = p;
+            updateCount++;
+          }
+        } else {
+          existingPatients.push(p);
+          newCount++;
+        }
+      });
+      
+      savePatients(existingPatients);
+      if (backup.logs) {
+        localStorage.setItem(LOG_KEY, JSON.stringify(backup.logs));
+      }
+      addLog('导入备份', `新增${newCount}位，更新${updateCount}位患者`);
+      hideBackupModal();
+      renderPatientList();
+      alert(`导入成功！新增${newCount}位患者，更新${updateCount}位患者`);
+    } catch (err) {
+      alert('备份文件格式错误：' + err.message);
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+// ========== 导出选项功能 ==========
+function showExportOptions() {
+  document.getElementById('export-options-modal').classList.add('active');
+}
+
+function hideExportOptions() {
+  document.getElementById('export-options-modal').classList.remove('active');
+}
+
+function doExportAll() {
+  const includeExcluded = document.getElementById('export-include-excluded').checked;
+  const anonymize = document.getElementById('export-anonymize').checked;
+  const format = document.querySelector('input[name="export-format"]:checked').value;
+  
+  let patients = getPatients();
+  if (!includeExcluded) {
+    patients = patients.filter(p => !p.excluded);
+  }
+  if (patients.length === 0) { alert('暂无可导出的患者数据'); return; }
+  
+  let csv = '';
+  if (format === 'long') {
+    csv = exportLongFormat(patients, anonymize);
+  } else {
+    csv = exportWideFormat(patients, anonymize);
+  }
+  
+  const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `患者数据_${format === 'long' ? '长表' : '宽表'}_${new Date().toLocaleDateString().replace(/\//g, '-')}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+  addLog('导出数据', `导出${patients.length}位患者，格式：${format === 'long' ? '长表' : '宽表'}，脱敏：${anonymize ? '是' : '否'}`);
+  hideExportOptions();
+}
+
+function exportLongFormat(patients, anonymize) {
+  let csv = '研究ID,住院号,姓名,状态,模块,字段,值,更新时间\n';
+  patients.forEach((patient, idx) => {
+    const researchId = 'SS' + String(idx + 1).padStart(4, '0');
+    const pid = anonymize ? researchId : patient.id;
+    const pname = anonymize ? '***' : patient.name;
+    const status = patient.excluded ? '已剔除' : '纳入';
+    if (patient.data) {
+      Object.keys(patient.data).forEach(module => {
+        const moduleData = patient.data[module];
+        Object.keys(moduleData).forEach(field => {
+          if (field !== 'updateTime') {
+            const value = String(moduleData[field]).replace(/"/g, '""');
+            csv += `"${researchId}","${pid}","${pname}","${status}","${module}","${field}","${value}","${moduleData.updateTime || ''}"\n`;
+          }
+        });
+      });
+    }
+  });
+  return csv;
+}
+
+function exportWideFormat(patients, anonymize) {
+  // 收集所有字段
+  const allFields = new Set();
+  patients.forEach(p => {
+    if (p.data) {
+      Object.keys(p.data).forEach(module => {
+        Object.keys(p.data[module]).forEach(field => {
+          if (field !== 'updateTime') {
+            allFields.add(`${module}_${field}`);
+          }
+        });
+      });
+    }
+  });
+  const fieldList = Array.from(allFields).sort();
+  
+  // 表头
+  let csv = '研究ID,住院号,姓名,状态,创建时间,最后更新,' + fieldList.join(',') + '\n';
+  
+  // 数据行
+  patients.forEach((patient, idx) => {
+    const researchId = 'SS' + String(idx + 1).padStart(4, '0');
+    const pid = anonymize ? researchId : patient.id;
+    const pname = anonymize ? '***' : patient.name;
+    const status = patient.excluded ? '已剔除' : '纳入';
+    const createTime = patient.createTime || '';
+    const lastUpdate = patient.lastUpdate || '';
+    
+    let row = `"${researchId}","${pid}","${pname}","${status}","${createTime}","${lastUpdate}"`;
+    fieldList.forEach(f => {
+      const [module, ...fieldParts] = f.split('_');
+      const field = fieldParts.join('_');
+      const value = patient.data?.[module]?.[field] || '';
+      row += `,"${String(value).replace(/"/g, '""')}"`;
+    });
+    csv += row + '\n';
+  });
+  return csv;
+}
+
+// ========== 缺失字段检查 ==========
+function calcFieldProgress(patient) {
+  let totalRequired = 0;
+  let filledRequired = 0;
+  const missingByModule = {};
+  
+  Object.keys(REQUIRED_FIELDS).forEach(moduleId => {
+    const fields = REQUIRED_FIELDS[moduleId];
+    const moduleData = patient.data?.[moduleId] || {};
+    const missing = [];
+    
+    fields.forEach(field => {
+      totalRequired++;
+      if (moduleData[field] && moduleData[field] !== '') {
+        filledRequired++;
+      } else {
+        missing.push(field);
+      }
+    });
+    
+    if (missing.length > 0) {
+      missingByModule[moduleId] = missing;
+    }
+  });
+  
+  return {
+    total: totalRequired,
+    filled: filledRequired,
+    percent: totalRequired > 0 ? Math.round(filledRequired / totalRequired * 100) : 0,
+    missingByModule
+  };
+}
+
+function showMissingFields() {
+  const patient = getPatient(currentPatientId);
+  if (!patient) return;
+  
+  const progress = calcFieldProgress(patient);
+  const container = document.getElementById('missing-fields-list');
+  
+  const moduleNames = {
+    basic: '基本信息',
+    diagnosis: '诊断信息',
+    symptoms: '症状体征',
+    lab: '实验室检查',
+    tcm: '中医四诊'
+  };
+  
+  if (Object.keys(progress.missingByModule).length === 0) {
+    container.innerHTML = '<div style="text-align:center;color:#10b981;padding:20px;">✓ 所有关键字段已填写完整</div>';
+  } else {
+    let html = '';
+    Object.keys(progress.missingByModule).forEach(moduleId => {
+      const fields = progress.missingByModule[moduleId];
+      html += `<div class="missing-module">
+        <div class="missing-module-title">${moduleNames[moduleId] || moduleId}</div>
+        ${fields.map(f => `<div class="missing-field-item">${f}</div>`).join('')}
+      </div>`;
+    });
+    container.innerHTML = html;
+  }
+  
+  document.getElementById('missing-fields-modal').classList.add('active');
+}
+
+function hideMissingFields() {
+  document.getElementById('missing-fields-modal').classList.remove('active');
+}
+
+// ========== 纳排复核功能 ==========
+function showReviewScreening() {
+  const patient = getPatient(currentPatientId);
+  if (!patient) return;
+  
+  const screening = patient.screening || {};
+  const container = document.getElementById('review-screening-content');
+  
+  container.innerHTML = `
+    <p class="screening-hint">复核并修改纳入排除标准：</p>
+    <div class="screening-section">
+      <div class="screening-title inclusion">✓ 纳入标准</div>
+      <label class="screening-item"><input type="checkbox" id="review-inc1" ${screening.inc1 ? 'checked' : ''}> 2014-2024年在中大医院首次确诊原发性干燥综合征</label>
+      <label class="screening-item"><input type="checkbox" id="review-inc2" ${screening.inc2 ? 'checked' : ''}> 符合2016 ACR/EULAR分类标准</label>
+      <label class="screening-item"><input type="checkbox" id="review-inc3" ${screening.inc3 ? 'checked' : ''}> 有较完整的电子病历记录</label>
+      <label class="screening-item"><input type="checkbox" id="review-inc4" ${screening.inc4 ? 'checked' : ''}> 至少有一次随访记录</label>
+      <label class="screening-item"><input type="checkbox" id="review-inc5" ${screening.inc5 ? 'checked' : ''}> 有中医四诊资料</label>
+    </div>
+    <div class="screening-section">
+      <div class="screening-title exclusion">✗ 排除标准</div>
+      <label class="screening-item"><input type="checkbox" id="review-exc1" ${screening.exc1 ? 'checked' : ''}> 继发性干燥综合征</label>
+      <label class="screening-item"><input type="checkbox" id="review-exc2" ${screening.exc2 ? 'checked' : ''}> 严重恶性肿瘤晚期</label>
+      <label class="screening-item"><input type="checkbox" id="review-exc3" ${screening.exc3 ? 'checked' : ''}> 关键研究变量严重缺失</label>
+      <label class="screening-item"><input type="checkbox" id="review-exc4" ${screening.exc4 ? 'checked' : ''}> 中医四诊资料严重缺失</label>
+    </div>
+  `;
+  
+  document.getElementById('review-reason').value = '';
+  document.getElementById('review-screening-modal').classList.add('active');
+}
+
+function hideReviewScreening() {
+  document.getElementById('review-screening-modal').classList.remove('active');
+}
+
+function saveReviewScreening() {
+  const reason = document.getElementById('review-reason').value.trim();
+  if (!reason) {
+    alert('请填写复核原因');
+    return;
+  }
+  
+  const newScreening = {
+    inc1: document.getElementById('review-inc1').checked,
+    inc2: document.getElementById('review-inc2').checked,
+    inc3: document.getElementById('review-inc3').checked,
+    inc4: document.getElementById('review-inc4').checked,
+    inc5: document.getElementById('review-inc5').checked,
+    exc1: document.getElementById('review-exc1').checked,
+    exc2: document.getElementById('review-exc2').checked,
+    exc3: document.getElementById('review-exc3').checked,
+    exc4: document.getElementById('review-exc4').checked
+  };
+  
+  const allIncluded = newScreening.inc1 && newScreening.inc2 && newScreening.inc3 && newScreening.inc4 && newScreening.inc5;
+  const anyExcluded = newScreening.exc1 || newScreening.exc2 || newScreening.exc3 || newScreening.exc4;
+  
+  let patients = getPatients();
+  const idx = patients.findIndex(p => p.id === currentPatientId);
+  if (idx >= 0) {
+    patients[idx].screening = newScreening;
+    patients[idx].screeningReviewTime = new Date().toISOString();
+    patients[idx].screeningReviewReason = reason;
+    
+    if (anyExcluded) {
+      patients[idx].excluded = true;
+      let excludeReason = '';
+      if (newScreening.exc1) excludeReason = '继发性干燥综合征';
+      else if (newScreening.exc2) excludeReason = '严重恶性肿瘤晚期';
+      else if (newScreening.exc3) excludeReason = '关键变量严重缺失';
+      else if (newScreening.exc4) excludeReason = '中医四诊资料缺失';
+      patients[idx].excludeReason = excludeReason;
+      patients[idx].excludeTime = new Date().toISOString();
+    } else if (allIncluded) {
+      delete patients[idx].excluded;
+      delete patients[idx].excludeReason;
+      delete patients[idx].excludeTime;
+    }
+    
+    savePatients(patients);
+    addLog('纳排复核', `患者${currentPatientId}，原因：${reason}`);
+  }
+  
+  hideReviewScreening();
+  const patient = getPatient(currentPatientId);
+  renderPatientOverview(patient);
+  alert('纳排复核已保存');
+}
+
+// ========== 操作日志功能 ==========
+function getLogs() {
+  return JSON.parse(localStorage.getItem(LOG_KEY) || '[]');
+}
+
+function addLog(action, detail) {
+  const logs = getLogs();
+  logs.unshift({
+    time: new Date().toISOString(),
+    user: sessionStorage.getItem('current_user') || 'unknown',
+    action,
+    detail
+  });
+  if (logs.length > 100) logs.length = 100;
+  localStorage.setItem(LOG_KEY, JSON.stringify(logs));
 }
