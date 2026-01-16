@@ -67,14 +67,14 @@ function checkLogin() {
 // 切换密码显示
 function togglePassword() {
   const input = document.getElementById('password-input');
-  const toggle = document.querySelector('.toggle-password');
-  if (input.type === 'password') {
-    input.type = 'text';
-    toggle.textContent = '隐藏';
-  } else {
-    input.type = 'password';
-    toggle.textContent = '显示';
-  }
+  const btn = document.querySelector('.toggle-password');
+  if (!input || !btn) return;
+
+  const isHidden = input.type === 'password';
+  input.type = isHidden ? 'text' : 'password';
+  btn.classList.toggle('is-on', isHidden);
+  btn.setAttribute('aria-pressed', isHidden ? 'true' : 'false');
+  btn.setAttribute('aria-label', isHidden ? '隐藏密码' : '显示密码');
 }
 
 // 登录处理
