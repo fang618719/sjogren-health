@@ -38,7 +38,14 @@
                 <span class="logout" onclick="handleLogout()">退出</span>
             </header>
             <div class="search-section">
-                <input type="text" id="search-input" placeholder="🔍 搜索住院号/姓名..." oninput="searchPatients()">
+                <input type="text" id="search-input" placeholder="搜索住院号/姓名..." oninput="searchPatients()">
+            </div>
+            <div class="filter-section">
+                <button class="filter-btn active" onclick="filterPatients('all')">全部</button>
+                <button class="filter-btn" onclick="filterPatients('not-started')">未开始</button>
+                <button class="filter-btn" onclick="filterPatients('in-progress')">进行中</button>
+                <button class="filter-btn" onclick="filterPatients('completed')">已完成</button>
+                <button class="filter-btn" onclick="filterPatients('excluded')">已剔除</button>
             </div>
             <div class="patient-list" id="patient-list"></div>
             <div class="add-patient-section">
@@ -66,12 +73,35 @@
             </div>
         </div>
 
+        <!-- 剔除患者弹窗 -->
+        <div id="exclude-patient-modal" class="modal">
+            <div class="modal-content">
+                <h3>剔除患者</h3>
+                <p style="color:#6b7280;font-size:14px;margin-bottom:16px;">请选择剔除原因：</p>
+                <div class="exclude-reasons">
+                    <label class="exclude-option"><input type="radio" name="exclude-reason" value="继发性干燥综合征"> 继发性干燥综合征</label>
+                    <label class="exclude-option"><input type="radio" name="exclude-reason" value="合并严重恶性肿瘤"> 合并严重恶性肿瘤</label>
+                    <label class="exclude-option"><input type="radio" name="exclude-reason" value="关键变量严重缺失"> 关键变量严重缺失</label>
+                    <label class="exclude-option"><input type="radio" name="exclude-reason" value="中医四诊资料缺失"> 中医四诊资料缺失</label>
+                    <label class="exclude-option"><input type="radio" name="exclude-reason" value="数据录入错误"> 数据录入错误</label>
+                    <label class="exclude-option"><input type="radio" name="exclude-reason" value="other"> 其他原因</label>
+                </div>
+                <div class="input-group" id="other-reason-group" style="display:none;margin-top:12px;">
+                    <input type="text" id="other-reason-input" placeholder="请输入其他原因">
+                </div>
+                <div class="modal-buttons">
+                    <button class="btn-cancel" onclick="hideExcludeModal()">取消</button>
+                    <button class="btn-confirm" style="background:linear-gradient(135deg,#ef4444,#f87171);" onclick="confirmExclude()">确认剔除</button>
+                </div>
+            </div>
+        </div>
+
         <!-- 患者详情页 -->
         <div id="patient-detail-page" class="page">
             <header>
                 <span class="back" onclick="backToList()">&lt; 返回</span>
                 <h2 id="patient-name-title">患者详情</h2>
-                <span class="delete-btn" onclick="deletePatient()">删除</span>
+                <span class="exclude-btn" onclick="showExcludeModal()">剔除</span>
             </header>
             <div class="patient-overview" id="patient-overview"></div>
             <div class="progress-section">

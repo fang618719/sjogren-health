@@ -53,36 +53,42 @@ header h2 { font-size: 18px; font-weight: 600; letter-spacing: 0.5px; }
 .form-textarea:focus { border-color: #6366f1; outline: none; box-shadow: 0 0 0 4px rgba(99,102,241,0.1); background: #fff; }
 
 /* 患者列表 */
-.search-section { padding: 16px 16px 0; }
-.search-section input { width: 100%; height: 50px; border: 2px solid #e5e7eb; border-radius: 14px; padding: 0 18px; font-size: 15px; background: #fff; transition: all 0.3s; }
-.search-section input:focus { border-color: #6366f1; outline: none; box-shadow: 0 0 0 4px rgba(99,102,241,0.1); }
-.patient-list { padding: 16px; }
-.patient-card { background: #fff; border-radius: 18px; padding: 20px; margin-bottom: 14px; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 2px 12px rgba(0,0,0,0.06); border: 1px solid rgba(99,102,241,0.08); position: relative; overflow: hidden; }
-.patient-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: linear-gradient(180deg, #6366f1, #8b5cf6); }
-.patient-card:hover { transform: translateY(-3px); box-shadow: 0 12px 30px rgba(99,102,241,0.15); border-color: rgba(99,102,241,0.2); }
-.patient-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-.patient-id { font-size: 13px; color: #6366f1; font-weight: 600; background: rgba(99,102,241,0.1); padding: 4px 10px; border-radius: 6px; }
-.patient-name { font-size: 20px; color: #1f2937; font-weight: 700; margin-bottom: 8px; }
-.patient-card-info { display: flex; justify-content: space-between; align-items: center; }
-.patient-progress { font-size: 13px; color: #10b981; font-weight: 500; }
+.search-section { padding: 16px; background: #fff; border-bottom: 1px solid #e5e7eb; }
+.search-section input { width: 100%; height: 48px; border: 2px solid #e5e7eb; border-radius: 12px; padding: 0 16px 0 44px; font-size: 15px; background: #f9fafb url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%239ca3af'%3e%3cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z'/%3e%3c/svg%3e") 14px center/20px no-repeat; transition: all 0.3s; }
+.search-section input:focus { border-color: #6366f1; outline: none; box-shadow: 0 0 0 4px rgba(99,102,241,0.1); background-color: #fff; }
+.patient-list { padding: 16px; min-height: 200px; }
+.patient-card { background: #fff; border-radius: 16px; padding: 18px; margin-bottom: 12px; cursor: pointer; transition: all 0.3s; box-shadow: 0 2px 8px rgba(0,0,0,0.06); border: 1px solid #e5e7eb; position: relative; padding-left: 22px; }
+.patient-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: linear-gradient(180deg, #6366f1, #8b5cf6); border-radius: 4px 0 0 4px; }
+.patient-card.excluded::before { background: linear-gradient(180deg, #ef4444, #f87171); }
+.patient-card:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
+.patient-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.patient-id { font-size: 12px; color: #6366f1; font-weight: 600; background: rgba(99,102,241,0.1); padding: 3px 8px; border-radius: 4px; }
+.patient-name { font-size: 18px; color: #1f2937; font-weight: 700; margin-bottom: 6px; }
+.patient-card-info { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.patient-progress { font-size: 13px; color: #6b7280; font-weight: 500; }
 .patient-time { font-size: 12px; color: #9ca3af; }
-.add-patient-section { padding: 16px; padding-bottom: 30px; display: flex; flex-direction: column; gap: 12px; }
-.btn-add { width: 100%; height: 56px; background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); color: #fff; border: none; border-radius: 16px; font-size: 17px; font-weight: 600; cursor: pointer; transition: all 0.3s; box-shadow: 0 6px 25px rgba(99,102,241,0.4); display: flex; align-items: center; justify-content: center; gap: 8px; }
-.btn-add:hover { transform: translateY(-3px); box-shadow: 0 10px 35px rgba(99,102,241,0.5); }
-.btn-export-all { width: 100%; height: 52px; background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%); color: #fff; border: none; border-radius: 14px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 15px rgba(245,158,11,0.4); }
-.btn-export-all:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(245,158,11,0.5); }
-.patient-status { font-size: 12px; padding: 4px 10px; border-radius: 6px; font-weight: 600; }
+.patient-status { font-size: 11px; padding: 3px 8px; border-radius: 4px; font-weight: 600; white-space: nowrap; }
 .patient-status.not-started { background: #f3f4f6; color: #6b7280; }
 .patient-status.in-progress { background: rgba(99,102,241,0.1); color: #6366f1; }
 .patient-status.completed { background: rgba(16,185,129,0.1); color: #10b981; }
-.patient-progress-bar { height: 6px; background: #e5e7eb; border-radius: 3px; margin-top: 10px; overflow: hidden; }
+.patient-status.excluded { background: rgba(239,68,68,0.1); color: #ef4444; }
+.patient-progress-bar { height: 6px; background: #e5e7eb; border-radius: 3px; overflow: hidden; }
 .patient-progress-bar-fill { height: 100%; border-radius: 3px; transition: width 0.3s; }
-.patient-progress-bar-fill.not-started { background: #d1d5db; width: 0; }
-.patient-progress-bar-fill.in-progress { background: linear-gradient(135deg, #6366f1, #8b5cf6); }
-.patient-progress-bar-fill.completed { background: linear-gradient(135deg, #10b981, #34d399); }
-.empty-list { text-align: center; padding: 80px 20px; color: #9ca3af; }
-.empty-list-icon { font-size: 64px; margin-bottom: 20px; opacity: 0.6; }
-.empty-list-text { font-size: 16px; line-height: 1.6; }
+.patient-progress-bar-fill.not-started { background: #d1d5db; }
+.patient-progress-bar-fill.in-progress { background: linear-gradient(90deg, #6366f1, #8b5cf6); }
+.patient-progress-bar-fill.completed { background: linear-gradient(90deg, #10b981, #34d399); }
+.patient-progress-bar-fill.excluded { background: #ef4444; }
+.add-patient-section { padding: 16px; padding-bottom: 30px; display: flex; flex-direction: column; gap: 10px; background: #f8fafc; border-top: 1px solid #e5e7eb; }
+.btn-add { width: 100%; height: 52px; background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); color: #fff; border: none; border-radius: 14px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 15px rgba(99,102,241,0.35); }
+.btn-add:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(99,102,241,0.45); }
+.btn-export-all { width: 100%; height: 48px; background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%); color: #fff; border: none; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 12px rgba(245,158,11,0.3); }
+.btn-export-all:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(245,158,11,0.4); }
+.empty-list { text-align: center; padding: 60px 20px; color: #9ca3af; }
+.empty-list-icon { font-size: 56px; margin-bottom: 16px; opacity: 0.5; }
+.empty-list-text { font-size: 15px; line-height: 1.5; }
+.filter-section { display: flex; gap: 8px; padding: 0 16px 12px; overflow-x: auto; }
+.filter-btn { padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 500; border: 1px solid #e5e7eb; background: #fff; color: #6b7280; cursor: pointer; white-space: nowrap; transition: all 0.2s; }
+.filter-btn.active { background: #6366f1; color: #fff; border-color: #6366f1; }
 
 /* 弹窗 */
 .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 200; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
@@ -95,6 +101,12 @@ header h2 { font-size: 18px; font-weight: 600; letter-spacing: 0.5px; }
 .btn-cancel:hover { background: #e5e7eb; }
 .btn-confirm { flex: 1; height: 50px; background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); color: #fff; border: none; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 15px rgba(99,102,241,0.4); }
 .btn-confirm:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(99,102,241,0.5); }
+
+/* 剔除弹窗 */
+.exclude-reasons { display: flex; flex-direction: column; gap: 10px; }
+.exclude-option { display: flex; align-items: center; gap: 10px; padding: 12px; background: #f9fafb; border-radius: 10px; cursor: pointer; font-size: 14px; color: #374151; transition: all 0.2s; }
+.exclude-option:hover { background: #f3f4f6; }
+.exclude-option input[type="radio"] { width: 18px; height: 18px; accent-color: #ef4444; }
 
 /* 患者详情 */
 .patient-overview { background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%); color: #fff; padding: 28px 24px; margin: 16px; border-radius: 20px; box-shadow: 0 8px 30px rgba(99,102,241,0.4); position: relative; overflow: hidden; }
@@ -109,6 +121,13 @@ header h2 { font-size: 18px; font-weight: 600; letter-spacing: 0.5px; }
 .progress-text { font-size: 14px; color: #10b981; font-weight: 600; }
 .delete-btn { font-size: 14px; cursor: pointer; padding: 8px 14px; background: rgba(239,68,68,0.2); border-radius: 8px; transition: all 0.3s; color: #fff; }
 .delete-btn:hover { background: rgba(239,68,68,0.4); }
+.exclude-btn { font-size: 14px; cursor: pointer; padding: 8px 14px; background: rgba(239,68,68,0.2); border-radius: 8px; transition: all 0.3s; color: #fff; }
+.exclude-btn:hover { background: rgba(239,68,68,0.4); }
+.exclude-info { margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.2); display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.exclude-badge { background: #ef4444; color: #fff; padding: 4px 10px; border-radius: 4px; font-size: 12px; font-weight: 600; }
+.exclude-reason { font-size: 13px; opacity: 0.9; }
+.restore-btn { background: rgba(255,255,255,0.2); color: #fff; border: none; padding: 6px 12px; border-radius: 6px; font-size: 13px; cursor: pointer; transition: all 0.2s; }
+.restore-btn:hover { background: rgba(255,255,255,0.3); }
 .module-item.completed .module-icon { background: linear-gradient(135deg, #10b981 0%, #34d399 100%); box-shadow: 0 6px 15px rgba(16,185,129,0.35); }
 .module-item .module-status { font-size: 12px; color: #9ca3af; margin-top: 8px; font-weight: 500; }
 .module-item.completed .module-status { color: #10b981; }

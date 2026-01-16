@@ -1,6 +1,7 @@
 // 应用状态
 let currentPatientId = null;
 let currentModule = null;
+let currentFilter = 'all';
 const STORAGE_KEY = 'sjogren_patients';
 
 // 预设用户
@@ -9,6 +10,13 @@ const VALID_USER = { username: 'pdd', password: '7402' };
 // 初始化
 document.addEventListener('DOMContentLoaded', () => {
   checkLogin();
+  // 剔除原因选择监听
+  document.querySelectorAll('input[name="exclude-reason"]').forEach(radio => {
+    radio.addEventListener('change', (e) => {
+      document.getElementById('other-reason-group').style.display = 
+        e.target.value === 'other' ? 'block' : 'none';
+    });
+  });
 });
 
 // 登录检查
@@ -78,11 +86,19 @@ function renderPatientList(filterText = '') {
     );
   }
   
+  // 状态筛选
+  if (currentFilter !== 'all') {
+    patients = patients.filter(p => {
+      const status = getPatientStatus(p);
+      return status === currentFilter;
+    });
+  }
+  
   if (patients.length === 0) {
     container.innerHTML = `
       <div class="empty-list">
         <div class="empty-list-icon">📋</div>
-        <div class="empty-list-text">${filterText ? '未找到匹配的患者' : '暂无患者，点击下方按钮添加'}</div>
+        <div class="empty-list-text">${filterText ? '未找到匹配的患者' : (currentFilter !== 'all' ? '该分类暂无患者' : '暂无患者，点击下方按钮添加')}</div>
       </div>
     `;
     return;
@@ -92,37 +108,56 @@ function renderPatientList(filterText = '') {
     const progress = calcProgress(p);
     const lastUpdate = p.lastUpdate ? formatDate(p.lastUpdate) : '未填写';
     const percent = Math.round(progress / 13 * 100);
-    
-    // 状态判断
-    let statusClass, statusText;
-    if (progress === 0) {
-      statusClass = 'not-started';
-      statusText = '未开始';
-    } else if (progress === 13) {
-      statusClass = 'completed';
-      statusText = '已完成';
-    } else {
-      statusClass = 'in-progress';
-      statusText = '进行中';
-    }
+    const status = getPatientStatus(p);
+    const statusText = getStatusText(status);
+    const isExcluded = p.excluded;
     
     return `
-      <div class="patient-card" onclick="openPatient('${p.id}')">
+      <div class="patient-card ${isExcluded ? 'excluded' : ''}" onclick="openPatient('${p.id}')">
         <div class="patient-card-header">
-          <span class="patient-id">住院号: ${p.id}</span>
-          <span class="patient-status ${statusClass}">${statusText}</span>
+          <span class="patient-id">${p.id}</span>
+          <span class="patient-status ${status}">${statusText}</span>
         </div>
         <div class="patient-name">${p.name}</div>
         <div class="patient-card-info">
           <span class="patient-progress">${progress}/13 项</span>
-          <span class="patient-time">更新: ${lastUpdate}</span>
+          <span class="patient-time">${lastUpdate}</span>
         </div>
         <div class="patient-progress-bar">
-          <div class="patient-progress-bar-fill ${statusClass}" style="width: ${percent}%"></div>
+          <div class="patient-progress-bar-fill ${status}" style="width: ${isExcluded ? 100 : percent}%"></div>
         </div>
       </div>
     `;
   }).join('');
+}
+
+// 获取患者状态
+function getPatientStatus(patient) {
+  if (patient.excluded) return 'excluded';
+  const progress = calcProgress(patient);
+  if (progress === 0) return 'not-started';
+  if (progress === 13) return 'completed';
+  return 'in-progress';
+}
+
+// 获取状态文本
+function getStatusText(status) {
+  const map = {
+    'not-started': '未开始',
+    'in-progress': '进行中',
+    'completed': '已完成',
+    'excluded': '已剔除'
+  };
+  return map[status] || status;
+}
+
+// 筛选患者
+function filterPatients(filter) {
+  currentFilter = filter;
+  document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+  event.target.classList.add('active');
+  const keyword = document.getElementById('search-input').value;
+  renderPatientList(keyword);
 }
 
 // 搜索患者
@@ -227,6 +262,18 @@ function openPatient(patientId) {
 function renderPatientOverview(patient) {
   const basic = patient.data?.basic || {};
   const container = document.getElementById('patient-overview');
+  
+  let excludeInfo = '';
+  if (patient.excluded) {
+    excludeInfo = `
+      <div class="exclude-info">
+        <span class="exclude-badge">已剔除</span>
+        <span class="exclude-reason">原因: ${patient.excludeReason}</span>
+        <button class="restore-btn" onclick="restorePatient()">恢复</button>
+      </div>
+    `;
+  }
+  
   container.innerHTML = `
     <div class="patient-overview-name">${patient.name}</div>
     <div class="patient-overview-id">住院号: ${patient.id}</div>
@@ -235,6 +282,7 @@ function renderPatientOverview(patient) {
       <span>年龄: ${basic.age || '-'}岁</span>
       <span>病程: ${basic.duration || '-'}月</span>
     </div>
+    ${excludeInfo}
   `;
 }
 
@@ -277,6 +325,62 @@ function deletePatient() {
   patients = patients.filter(p => p.id !== currentPatientId);
   savePatients(patients);
   backToList();
+}
+
+// 显示剔除弹窗
+function showExcludeModal() {
+  document.getElementById('exclude-patient-modal').classList.add('active');
+  document.querySelectorAll('input[name="exclude-reason"]').forEach(r => r.checked = false);
+  document.getElementById('other-reason-group').style.display = 'none';
+  document.getElementById('other-reason-input').value = '';
+}
+
+// 隐藏剔除弹窗
+function hideExcludeModal() {
+  document.getElementById('exclude-patient-modal').classList.remove('active');
+}
+
+// 确认剔除
+function confirmExclude() {
+  const selected = document.querySelector('input[name="exclude-reason"]:checked');
+  if (!selected) {
+    alert('请选择剔除原因');
+    return;
+  }
+  let reason = selected.value;
+  if (reason === 'other') {
+    reason = document.getElementById('other-reason-input').value.trim();
+    if (!reason) {
+      alert('请输入其他原因');
+      return;
+    }
+  }
+  
+  let patients = getPatients();
+  const idx = patients.findIndex(p => p.id === currentPatientId);
+  if (idx >= 0) {
+    patients[idx].excluded = true;
+    patients[idx].excludeReason = reason;
+    patients[idx].excludeTime = new Date().toISOString();
+    savePatients(patients);
+  }
+  hideExcludeModal();
+  backToList();
+}
+
+// 恢复患者（取消剔除）
+function restorePatient() {
+  if (!confirm('确定要恢复该患者吗？')) return;
+  let patients = getPatients();
+  const idx = patients.findIndex(p => p.id === currentPatientId);
+  if (idx >= 0) {
+    delete patients[idx].excluded;
+    delete patients[idx].excludeReason;
+    delete patients[idx].excludeTime;
+    savePatients(patients);
+  }
+  const patient = getPatient(currentPatientId);
+  renderPatientOverview(patient);
 }
 
 // 打开表单模块
