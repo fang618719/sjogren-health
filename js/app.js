@@ -64,6 +64,19 @@ function checkLogin() {
   }
 }
 
+// 切换密码显示
+function togglePassword() {
+  const input = document.getElementById('password-input');
+  const toggle = document.querySelector('.toggle-password');
+  if (input.type === 'password') {
+    input.type = 'text';
+    toggle.textContent = '🙈';
+  } else {
+    input.type = 'password';
+    toggle.textContent = '👁';
+  }
+}
+
 // 登录处理
 function handleLogin() {
   const username = document.getElementById('username-input').value;

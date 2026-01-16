@@ -24,7 +24,10 @@
                     </div>
                     <div class="input-group">
                         <label>密码</label>
-                        <input type="password" id="password-input" placeholder="请输入密码">
+                        <div class="password-wrapper">
+                            <input type="password" id="password-input" placeholder="请输入密码">
+                            <span class="toggle-password" onclick="togglePassword()">👁</span>
+                        </div>
                     </div>
                     <button class="btn-primary" onclick="handleLogin()">进入系统</button>
                 </div>
