@@ -70,10 +70,10 @@ function togglePassword() {
   const toggle = document.querySelector('.toggle-password');
   if (input.type === 'password') {
     input.type = 'text';
-    toggle.textContent = '🙈';
+    toggle.textContent = '隐藏';
   } else {
     input.type = 'password';
-    toggle.textContent = '👁';
+    toggle.textContent = '显示';
   }
 }
 
